@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { calcularCuenta, formatoPesos } from "../utils/cuenta.js";
-import { DESCUENTOS } from "../data/mock.js";
+import { CATEGORIAS, DESCUENTOS } from "../data/mock.js";
 import { mostrarToast } from "../utils/toast.js";
 
 export default function Pedido({ mesa, menu, actualizar, registrarVenta }) {
-  const [platoId, setPlatoId] = useState(menu[0]?.id ?? "");
+  const [categoria, setCategoria] = useState(CATEGORIAS[0]);
   const [conPropina, setConPropina] = useState(true);
   const [factura, setFactura] = useState(null);
   const [codigo, setCodigo] = useState("");
@@ -28,8 +28,7 @@ export default function Pedido({ mesa, menu, actualizar, registrarVenta }) {
     mostrarToast(`Pedido abierto en la mesa ${mesa.id}`);
   }
 
-  function agregar() {
-    const id = Number(platoId);
+  function agregar(id) {
     const existe = mesa.items.find((i) => i.platoId === id);
     const items = existe
       ? mesa.items.map((i) => (i.platoId === id ? { ...i, cantidad: i.cantidad + 1 } : i))
@@ -104,13 +103,23 @@ export default function Pedido({ mesa, menu, actualizar, registrarVenta }) {
   return (
     <div className="card">
       <h2>Pedido - Mesa {mesa.id}</h2>
-      <div className="agregar">
-        <select value={platoId} onChange={(e) => setPlatoId(e.target.value)}>
-          {menu.map((p) => (
-            <option key={p.id} value={p.id}>{p.nombre} - {formatoPesos(p.precio)}</option>
+      <div className="selector">
+        <div className="filtros">
+          {CATEGORIAS.map((c) => (
+            <button key={c} className={categoria === c ? "chip activo" : "chip"} onClick={() => setCategoria(c)}>
+              {c}
+            </button>
           ))}
-        </select>
-        <button onClick={agregar}>Agregar</button>
+        </div>
+        <div className="mini-grid">
+          {menu.filter((p) => p.categoria === categoria).map((p) => (
+            <button key={p.id} className="mini" onClick={() => agregar(p.id)} title={`Agregar ${p.nombre}`}>
+              <span className="mini-emoji">{p.emoji}</span>
+              <span className="mini-nombre">{p.nombre}</span>
+              <span className="mini-precio">{formatoPesos(p.precio)}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {mesa.items.length === 0 && <p className="vacio">Aún no hay platos.</p>}

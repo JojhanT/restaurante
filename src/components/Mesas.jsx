@@ -47,6 +47,9 @@ export default function Mesas({ menu, mesas, setMesas, registrarVenta }) {
                 >
                   <span className="silla">{m.estado === "libre" ? "🪑" : "🍽️"}</span>
                   <h3>Mesa {m.id}</h3>
+                  <span className="sillas" aria-label={`${m.capacidad} personas`}>
+                    {Array.from({ length: m.capacidad }, (_, k) => <i key={k} />)}
+                  </span>
                   <small>{m.capacidad} personas</small>
                   <span className={`badge ${m.estado}`}>{m.estado}</span>
                   {m.estado === "ocupada" && <strong>{formatoPesos(total)}</strong>}
