@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Menu from "./components/Menu.jsx";
 import Mesas from "./components/Mesas.jsx";
 import Ventas from "./components/Ventas.jsx";
+import useLocalStorage from "./hooks/useLocalStorage.js";
 import { MENU_INICIAL, MESAS_INICIAL } from "./data/mock.js";
 
 const TITULOS = {
@@ -12,9 +13,16 @@ const TITULOS = {
 
 export default function App() {
   const [vista, setVista] = useState("mesas");
-  const [menu, setMenu] = useState(MENU_INICIAL);
-  const [mesas, setMesas] = useState(MESAS_INICIAL);
-  const [ventas, setVentas] = useState([]);
+  const [menu, setMenu] = useLocalStorage("menu", MENU_INICIAL);
+  const [mesas, setMesas] = useLocalStorage("mesas", MESAS_INICIAL);
+  const [ventas, setVentas] = useLocalStorage("ventas", []);
+
+  function restablecer() {
+    if (!window.confirm("¿Restablecer todos los datos de demostración?")) return;
+    setMenu(MENU_INICIAL);
+    setMesas(MESAS_INICIAL);
+    setVentas([]);
+  }
   const [tema, setTema] = useState(() => {
     try {
       return localStorage.getItem("tema") || "claro";
@@ -81,6 +89,10 @@ export default function App() {
         )}
         {vista === "ventas" && <Ventas ventas={ventas} limpiar={() => setVentas([])} />}
       </main>
+      <footer className="pie">
+        <span>Datos guardados en este navegador</span>
+        <button className="chip" onClick={restablecer}>Restablecer datos de demo</button>
+      </footer>
     </div>
   );
 }
