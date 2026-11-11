@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { calcularCuenta, formatoPesos } from "../utils/cuenta.js";
 
-export default function Pedido({ mesa, menu, actualizar }) {
+export default function Pedido({ mesa, menu, actualizar, registrarVenta }) {
   const [platoId, setPlatoId] = useState(menu[0]?.id ?? "");
   const [conPropina, setConPropina] = useState(true);
   const [factura, setFactura] = useState(null);
@@ -27,7 +27,12 @@ export default function Pedido({ mesa, menu, actualizar }) {
   }
 
   function cobrar() {
-    setFactura({ mesa: mesa.id, lineas: mesa.items, cuenta: calcularCuenta(mesa.items, menu, conPropina) });
+    const cuenta = calcularCuenta(mesa.items, menu, conPropina);
+    const platos = mesa.items
+      .map((i) => `${i.cantidad}x ${menu.find((p) => p.id === i.platoId)?.nombre ?? "Plato"}`)
+      .join(", ");
+    registrarVenta({ mesa: mesa.id, platos, cuenta });
+    setFactura({ mesa: mesa.id, lineas: mesa.items, cuenta });
     actualizar(mesa.id, { estado: "libre", items: [] });
   }
 

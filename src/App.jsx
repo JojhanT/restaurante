@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
 import Menu from "./components/Menu.jsx";
 import Mesas from "./components/Mesas.jsx";
+import Ventas from "./components/Ventas.jsx";
 import { MENU_INICIAL, MESAS_INICIAL } from "./data/mock.js";
 
 const TITULOS = {
   mesas: ["Salón principal", "Gestiona mesas, pedidos y cobros en tiempo real."],
   menu: ["Nuestra carta", "Administra los platos que ofrece el restaurante."],
+  ventas: ["Caja del día", "Consulta las facturas emitidas y el total vendido."],
 };
 
 export default function App() {
   const [vista, setVista] = useState("mesas");
   const [menu, setMenu] = useState(MENU_INICIAL);
   const [mesas, setMesas] = useState(MESAS_INICIAL);
+  const [ventas, setVentas] = useState([]);
   const [tema, setTema] = useState(() => {
     try {
       return localStorage.getItem("tema") || "claro";
@@ -19,6 +22,11 @@ export default function App() {
       return "claro";
     }
   });
+
+  function registrarVenta(venta) {
+    const hora = new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
+    setVentas((prev) => [{ ...venta, id: prev.length + 1, hora }, ...prev]);
+  }
 
   useEffect(() => {
     document.documentElement.dataset.tema = tema;
@@ -48,6 +56,9 @@ export default function App() {
               <button className={vista === "menu" ? "activo" : ""} onClick={() => setVista("menu")}>
                 Menú
               </button>
+              <button className={vista === "ventas" ? "activo" : ""} onClick={() => setVista("ventas")}>
+                Ventas
+              </button>
             </nav>
             <button
               className="tema"
@@ -65,7 +76,10 @@ export default function App() {
       </header>
       <main>
         {vista === "menu" && <Menu menu={menu} setMenu={setMenu} />}
-        {vista === "mesas" && <Mesas menu={menu} mesas={mesas} setMesas={setMesas} />}
+        {vista === "mesas" && (
+          <Mesas menu={menu} mesas={mesas} setMesas={setMesas} registrarVenta={registrarVenta} />
+        )}
+        {vista === "ventas" && <Ventas ventas={ventas} limpiar={() => setVentas([])} />}
       </main>
     </div>
   );

@@ -1,25 +1,22 @@
 # Restaurante El Sabor - Front-end (React)
 
-Interfaz gráfica en React + Vite para gestionar menú, mesas, pedidos y facturación.
-Es solo front-end: los datos son simulados (mock) y viven en memoria.
-Proyecto de Gestión del Software - Unidad 2 (Gestión de la configuración).
+Interfaz grafica en React + Vite para gestionar menú, mesas, pedidos y facturación, los datos Datos viven en memoria.
 
 ## Requisitos
+
 - Node.js 18 o superior
 
 ## Ejecución
+
 ```
 npm install
 npm run dev
 ```
+
 Abrir http://localhost:5173
 
-## Build de producción
-```
-npm run build
-```
-
 ## Estructura
+
 ```
 src/
   App.jsx                  # navegación y estado global
@@ -33,4 +30,5 @@ src/
 ```
 
 ## Convención de commits
+
 `feat:`, `fix:`, `docs:`, `style:`, `chore:`

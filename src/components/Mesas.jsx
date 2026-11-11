@@ -2,7 +2,7 @@ import { useState } from "react";
 import Pedido from "./Pedido.jsx";
 import { calcularCuenta, formatoPesos } from "../utils/cuenta.js";
 
-export default function Mesas({ menu, mesas, setMesas }) {
+export default function Mesas({ menu, mesas, setMesas, registrarVenta }) {
   const [seleccionada, setSeleccionada] = useState(null);
   const mesa = mesas.find((m) => m.id === seleccionada);
 
@@ -57,7 +57,13 @@ export default function Mesas({ menu, mesas, setMesas }) {
         </div>
         <div className="panel">
           {mesa ? (
-            <Pedido key={mesa.id} mesa={mesa} menu={menu} actualizar={actualizar} />
+            <Pedido
+              key={mesa.id}
+              mesa={mesa}
+              menu={menu}
+              actualizar={actualizar}
+              registrarVenta={registrarVenta}
+            />
           ) : (
             <div className="card vacio">👈 Selecciona una mesa para ver o crear su pedido.</div>
           )}
