@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CATEGORIAS } from "../data/mock.js";
 import { formatoPesos } from "../utils/cuenta.js";
+import { mostrarToast } from "../utils/toast.js";
 
 export default function Menu({ menu, setMenu }) {
   const [filtro, setFiltro] = useState("Todas");
@@ -20,6 +21,7 @@ export default function Menu({ menu, setMenu }) {
     if (!(precio > 0)) return setError("El precio debe ser mayor a 0");
     const id = Math.max(0, ...menu.map((p) => p.id)) + 1;
     setMenu([...menu, { id, nombre: form.nombre.trim(), categoria: form.categoria, precio, emoji: "🍴" }]);
+    mostrarToast(`"${form.nombre.trim()}" añadido a la carta`);
     setForm({ ...form, nombre: "", precio: "" });
     setError("");
   }
@@ -52,7 +54,10 @@ export default function Menu({ menu, setMenu }) {
               <small>{p.categoria}</small>
               <h3>{p.nombre}</h3>
               <strong>{formatoPesos(p.precio)}</strong>
-              <button className="peligro" onClick={() => setMenu(menu.filter((x) => x.id !== p.id))}>
+              <button className="peligro" onClick={() => {
+                  setMenu(menu.filter((x) => x.id !== p.id));
+                  mostrarToast(`${p.nombre} eliminado`, "aviso");
+                }}>
                 Eliminar
               </button>
             </div>

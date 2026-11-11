@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Menu from "./components/Menu.jsx";
 import Mesas from "./components/Mesas.jsx";
 import Ventas from "./components/Ventas.jsx";
+import Toasts from "./components/Toasts.jsx";
 import useLocalStorage from "./hooks/useLocalStorage.js";
 import { MENU_INICIAL, MESAS_INICIAL } from "./data/mock.js";
 
@@ -48,6 +49,9 @@ export default function App() {
   return (
     <div className="app">
       <header className="hero">
+        <div className="flotantes" aria-hidden="true">
+          <span>🍕</span><span>🥑</span><span>🍋</span><span>🌮</span><span>🍰</span><span>🥂</span>
+        </div>
         <div className="topbar">
           <div className="marca">
             <div className="logo">🍴</div>
@@ -89,6 +93,7 @@ export default function App() {
         )}
         {vista === "ventas" && <Ventas ventas={ventas} limpiar={() => setVentas([])} />}
       </main>
+      <Toasts />
       <footer className="pie">
         <span>Datos guardados en este navegador</span>
         <button className="chip" onClick={restablecer}>Restablecer datos de demo</button>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { calcularCuenta, formatoPesos } from "../utils/cuenta.js";
 import { DESCUENTOS } from "../data/mock.js";
+import { mostrarToast } from "../utils/toast.js";
 
 export default function Pedido({ mesa, menu, actualizar, registrarVenta }) {
   const [platoId, setPlatoId] = useState(menu[0]?.id ?? "");
@@ -14,6 +15,7 @@ export default function Pedido({ mesa, menu, actualizar, registrarVenta }) {
     const clave = codigo.trim().toUpperCase();
     if (DESCUENTOS[clave]) {
       setDescuento({ codigo: clave, pct: DESCUENTOS[clave] });
+      mostrarToast(`Descuento ${clave} aplicado`);
       setAviso(`Código ${clave} aplicado: ${DESCUENTOS[clave] * 100}% de descuento`);
     } else {
       setDescuento({ codigo: "", pct: 0 });
@@ -23,6 +25,7 @@ export default function Pedido({ mesa, menu, actualizar, registrarVenta }) {
 
   function abrir() {
     actualizar(mesa.id, { estado: "ocupada" });
+    mostrarToast(`Pedido abierto en la mesa ${mesa.id}`);
   }
 
   function agregar() {
@@ -32,6 +35,7 @@ export default function Pedido({ mesa, menu, actualizar, registrarVenta }) {
       ? mesa.items.map((i) => (i.platoId === id ? { ...i, cantidad: i.cantidad + 1 } : i))
       : [...mesa.items, { platoId: id, cantidad: 1 }];
     actualizar(mesa.id, { items });
+    mostrarToast(`${menu.find((p) => p.id === id)?.nombre} agregado`);
   }
 
   function cambiarCantidad(id, delta) {
@@ -49,11 +53,17 @@ export default function Pedido({ mesa, menu, actualizar, registrarVenta }) {
     registrarVenta({ mesa: mesa.id, platos, cuenta });
     setFactura({ mesa: mesa.id, lineas: mesa.items, cuenta });
     actualizar(mesa.id, { estado: "libre", items: [] });
+    mostrarToast(`Mesa ${mesa.id} cobrada: ${formatoPesos(cuenta.total)}`);
   }
 
   if (factura) {
     return (
       <div className="card factura">
+        <div className="confeti" aria-hidden="true">
+          {["🎉", "✨", "🎊", "⭐", "🎉", "✨", "🎊", "⭐"].map((c, i) => (
+            <span key={i} style={{ left: `${8 + i * 12}%`, animationDelay: `${i * 0.08}s` }}>{c}</span>
+          ))}
+        </div>
         <h2>🧾 Factura - Mesa {factura.mesa}</h2>
         <ul>
           {factura.lineas.map((l) => {

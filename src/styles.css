@@ -273,3 +273,69 @@ body { overflow-x: hidden; }
 .codigo { display: flex; gap: 8px; margin-top: 8px; }
 .codigo input { flex: 1; min-width: 0; text-transform: uppercase; }
 .ok { color: var(--verde); margin: 6px 0; font-size: 0.9rem; font-weight: 500; }
+
+/* ===== Edición "bacana" ===== */
+.hero {
+  background: linear-gradient(120deg, #6e1a15, #b8322a, #e0684a, #b8322a, #6e1a15);
+  background-size: 300% 300%;
+  animation: fluir 14s ease infinite;
+}
+@keyframes fluir { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+.hero::after { display: none; }
+
+.flotantes { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.flotantes span { position: absolute; font-size: 2.4rem; opacity: 0.22; animation: flotar 9s ease-in-out infinite; filter: blur(0.3px); }
+.flotantes span:nth-child(1) { left: 6%; top: 55%; }
+.flotantes span:nth-child(2) { left: 22%; top: 12%; animation-delay: -2s; font-size: 1.8rem; }
+.flotantes span:nth-child(3) { left: 48%; top: 62%; animation-delay: -4s; }
+.flotantes span:nth-child(4) { left: 68%; top: 10%; animation-delay: -1s; font-size: 3rem; }
+.flotantes span:nth-child(5) { left: 82%; top: 58%; animation-delay: -5s; }
+.flotantes span:nth-child(6) { left: 92%; top: 14%; animation-delay: -3s; font-size: 1.9rem; }
+@keyframes flotar { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-22px) rotate(8deg); } }
+.topbar, .hero-texto { position: relative; z-index: 1; }
+
+.topbar nav { backdrop-filter: blur(10px); background: #ffffff1f; border: 1px solid #ffffff33; }
+.marca .logo { animation: latir 3s ease-in-out infinite; }
+@keyframes latir { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+/* Tarjetas con brillo */
+.card { backdrop-filter: blur(6px); }
+.plato { position: relative; }
+.plato::before {
+  content: ""; position: absolute; inset: 0; border-radius: 16px; padding: 2px; pointer-events: none;
+  background: linear-gradient(135deg, var(--dorado), var(--primary));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  opacity: 0; transition: opacity 0.25s;
+}
+.plato:hover::before { opacity: 1; }
+.plato:hover .emoji { transform: scale(1.12) rotate(-4deg); }
+.plato .emoji { transition: transform 0.3s; }
+
+/* Mesas ocupadas: punto que pulsa */
+.mesa.ocupada::after {
+  content: ""; position: absolute; top: 14px; right: 14px; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--primary); box-shadow: 0 0 0 0 #b8322a88; animation: pulso 1.8s infinite;
+}
+@keyframes pulso { 70% { box-shadow: 0 0 0 12px #b8322a00; } 100% { box-shadow: 0 0 0 0 #b8322a00; } }
+
+/* Botones con degradado */
+button:not(.chip):not(.peligro):not(.tema):not(.cantidad button):not(.topbar nav button) {
+  background-image: linear-gradient(135deg, #d4453a, var(--primary-dark));
+  box-shadow: 0 4px 12px #b8322a44;
+}
+
+/* Toasts */
+.toasts { position: fixed; right: 20px; bottom: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 50; }
+.toast {
+  background: #2b2622; color: #fff; padding: 12px 18px; border-radius: 12px; font-weight: 500; font-size: 0.92rem;
+  box-shadow: var(--sombra-alta); border-left: 4px solid var(--verde); animation: deslizar 0.3s ease;
+}
+.toast.aviso { border-left-color: var(--dorado); }
+@keyframes deslizar { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: none; } }
+@media (max-width: 640px) { .toasts { left: 16px; right: 16px; bottom: 12px; } }
+
+/* Confeti en la factura */
+.factura { position: relative; overflow: hidden; }
+.confeti span { position: absolute; top: -20px; font-size: 1.4rem; animation: caer 2.2s ease-in forwards; }
+@keyframes caer { to { transform: translateY(340px) rotate(300deg); opacity: 0; } }
