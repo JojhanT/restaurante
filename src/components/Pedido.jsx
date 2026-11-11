@@ -1,10 +1,25 @@
 import { useState } from "react";
 import { calcularCuenta, formatoPesos } from "../utils/cuenta.js";
+import { DESCUENTOS } from "../data/mock.js";
 
 export default function Pedido({ mesa, menu, actualizar, registrarVenta }) {
   const [platoId, setPlatoId] = useState(menu[0]?.id ?? "");
   const [conPropina, setConPropina] = useState(true);
   const [factura, setFactura] = useState(null);
+  const [codigo, setCodigo] = useState("");
+  const [descuento, setDescuento] = useState({ codigo: "", pct: 0 });
+  const [aviso, setAviso] = useState("");
+
+  function aplicarCodigo() {
+    const clave = codigo.trim().toUpperCase();
+    if (DESCUENTOS[clave]) {
+      setDescuento({ codigo: clave, pct: DESCUENTOS[clave] });
+      setAviso(`Código ${clave} aplicado: ${DESCUENTOS[clave] * 100}% de descuento`);
+    } else {
+      setDescuento({ codigo: "", pct: 0 });
+      setAviso("Código no válido");
+    }
+  }
 
   function abrir() {
     actualizar(mesa.id, { estado: "ocupada" });
@@ -27,7 +42,7 @@ export default function Pedido({ mesa, menu, actualizar, registrarVenta }) {
   }
 
   function cobrar() {
-    const cuenta = calcularCuenta(mesa.items, menu, conPropina);
+    const cuenta = calcularCuenta(mesa.items, menu, conPropina, descuento.pct);
     const platos = mesa.items
       .map((i) => `${i.cantidad}x ${menu.find((p) => p.id === i.platoId)?.nombre ?? "Plato"}`)
       .join(", ");
@@ -53,6 +68,9 @@ export default function Pedido({ mesa, menu, actualizar, registrarVenta }) {
         </ul>
         <hr />
         <div className="fila"><span>Subtotal</span><span>{formatoPesos(factura.cuenta.subtotal)}</span></div>
+        {factura.cuenta.descuento > 0 && (
+          <div className="fila"><span>Descuento</span><span>-{formatoPesos(factura.cuenta.descuento)}</span></div>
+        )}
         <div className="fila"><span>Impoconsumo (8%)</span><span>{formatoPesos(factura.cuenta.impuesto)}</span></div>
         <div className="fila"><span>Propina (10%)</span><span>{formatoPesos(factura.cuenta.propina)}</span></div>
         <div className="fila total"><span>TOTAL</span><span>{formatoPesos(factura.cuenta.total)}</span></div>
@@ -71,7 +89,7 @@ export default function Pedido({ mesa, menu, actualizar, registrarVenta }) {
     );
   }
 
-  const cuenta = calcularCuenta(mesa.items, menu, conPropina);
+  const cuenta = calcularCuenta(mesa.items, menu, conPropina, descuento.pct);
 
   return (
     <div className="card">
@@ -102,6 +120,19 @@ export default function Pedido({ mesa, menu, actualizar, registrarVenta }) {
           );
         })}
       </ul>
+
+      <div className="codigo">
+        <input
+          placeholder="Código de descuento"
+          value={codigo}
+          onChange={(e) => setCodigo(e.target.value)}
+        />
+        <button onClick={aplicarCodigo} disabled={!codigo.trim()}>Aplicar</button>
+      </div>
+      {aviso && <p className={descuento.pct ? "ok" : "error"}>{aviso}</p>}
+      {cuenta.descuento > 0 && (
+        <div className="fila"><span>Descuento</span><span>-{formatoPesos(cuenta.descuento)}</span></div>
+      )}
 
       <label className="check">
         <input type="checkbox" checked={conPropina} onChange={(e) => setConPropina(e.target.checked)} />

@@ -23,3 +23,6 @@ export const MESAS_INICIAL = [
 
 export const IMPUESTO_CONSUMO = 0.08;
 export const PROPINA = 0.1;
+
+// Códigos promocionales simulados: código -> porcentaje de descuento
+export const DESCUENTOS = { BIENVENIDO: 0.1, ESTUDIANTE: 0.15, UNIMINUTO: 0.2 };
