@@ -1,0 +1,72 @@
+import { useEffect, useState } from "react";
+import Menu from "./components/Menu.jsx";
+import Mesas from "./components/Mesas.jsx";
+import { MENU_INICIAL, MESAS_INICIAL } from "./data/mock.js";
+
+const TITULOS = {
+  mesas: ["Salón principal", "Gestiona mesas, pedidos y cobros en tiempo real."],
+  menu: ["Nuestra carta", "Administra los platos que ofrece el restaurante."],
+};
+
+export default function App() {
+  const [vista, setVista] = useState("mesas");
+  const [menu, setMenu] = useState(MENU_INICIAL);
+  const [mesas, setMesas] = useState(MESAS_INICIAL);
+  const [tema, setTema] = useState(() => {
+    try {
+      return localStorage.getItem("tema") || "claro";
+    } catch {
+      return "claro";
+    }
+  });
+
+  useEffect(() => {
+    document.documentElement.dataset.tema = tema;
+    try {
+      localStorage.setItem("tema", tema);
+    } catch {
+      /* sin almacenamiento */
+    }
+  }, [tema]);
+
+  return (
+    <div className="app">
+      <header className="hero">
+        <div className="topbar">
+          <div className="marca">
+            <div className="logo">🍴</div>
+            <div>
+              <h1>El Sabor</h1>
+              <small>Restaurante</small>
+            </div>
+          </div>
+          <div className="acciones">
+            <nav>
+              <button className={vista === "mesas" ? "activo" : ""} onClick={() => setVista("mesas")}>
+                Mesas y pedidos
+              </button>
+              <button className={vista === "menu" ? "activo" : ""} onClick={() => setVista("menu")}>
+                Menú
+              </button>
+            </nav>
+            <button
+              className="tema"
+              title="Cambiar tema"
+              onClick={() => setTema(tema === "claro" ? "oscuro" : "claro")}
+            >
+              {tema === "claro" ? "🌙" : "☀️"}
+            </button>
+          </div>
+        </div>
+        <div className="hero-texto">
+          <h2>{TITULOS[vista][0]}</h2>
+          <p>{TITULOS[vista][1]}</p>
+        </div>
+      </header>
+      <main>
+        {vista === "menu" && <Menu menu={menu} setMenu={setMenu} />}
+        {vista === "mesas" && <Mesas menu={menu} mesas={mesas} setMesas={setMesas} />}
+      </main>
+    </div>
+  );
+}
