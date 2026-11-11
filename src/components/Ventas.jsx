@@ -1,5 +1,29 @@
 import { formatoPesos } from "../utils/cuenta.js";
 
+function exportarCSV(ventas) {
+  const filas = [["Factura", "Hora", "Mesa", "Platos", "Subtotal", "Descuento", "Impuesto", "Propina", "Total"]];
+  ventas.forEach((v) =>
+    filas.push([
+      v.id,
+      v.hora,
+      v.mesa,
+      `"${v.platos.replace(/"/g, '""')}"`,
+      v.cuenta.subtotal,
+      v.cuenta.descuento ?? 0,
+      v.cuenta.impuesto,
+      v.cuenta.propina,
+      v.cuenta.total,
+    ])
+  );
+  const contenido = "﻿" + filas.map((f) => f.join(",")).join("\n");
+  const url = URL.createObjectURL(new Blob([contenido], { type: "text/csv;charset=utf-8" }));
+  const enlace = document.createElement("a");
+  enlace.href = url;
+  enlace.download = "ventas.csv";
+  enlace.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function Ventas({ ventas, limpiar }) {
   const totalVendido = ventas.reduce((acc, v) => acc + v.cuenta.total, 0);
   const totalPropinas = ventas.reduce((acc, v) => acc + v.cuenta.propina, 0);
@@ -29,7 +53,10 @@ export default function Ventas({ ventas, limpiar }) {
       <div className="seccion-titulo">
         <h2>Historial de ventas</h2>
         {ventas.length > 0 && (
-          <button className="chip" onClick={limpiar}>Limpiar historial</button>
+          <div className="filtros">
+            <button onClick={() => exportarCSV(ventas)}>⬇ Exportar CSV</button>
+            <button className="chip" onClick={limpiar}>Limpiar historial</button>
+          </div>
         )}
       </div>
 
