@@ -49,7 +49,7 @@ Cada push ejecuta [.github/workflows/pipeline.yml](.github/workflows/pipeline.ym
 |---|---|---|
 | 1 · Calidad | ESLint | hay errores de análisis estático |
 | 2 · Pruebas | Vitest con cobertura y reporte JUnit | una prueba falla o la cobertura de `src/domain` baja del umbral |
-| 3 · Seguridad | `npm audit` y CodeQL | hay vulnerabilidades altas o críticas |
+| 3 · Seguridad | `npm audit` y CodeQL | hay vulnerabilidades altas o críticas, o CodeQL reporta alertas |
 | 4 · Construcción | `vite build` y presupuesto de tamaño | el build falla o el paquete supera el límite |
 | 5 · Staging | Publica en GitHub Pages (solo `main`) | el despliegue falla |
 | 6 · Verificación | Prueba de humo sobre el sitio publicado | el sitio no responde, no carga o tarda más de 2 s |

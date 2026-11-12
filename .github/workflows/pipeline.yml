@@ -91,6 +91,15 @@ jobs:
           languages: javascript-typescript
       - name: Análisis de vulnerabilidades en el código (CodeQL)
         uses: github/codeql-action/analyze@v4
+        with:
+          output: resultados-codeql
+      # CodeQL publica las alertas pero no detiene el pipeline; este paso sí lo hace.
+      - name: Bloquear si CodeQL encuentra alertas
+        run: |
+          total=$(jq '[.runs[].results[]] | length' resultados-codeql/*.sarif)
+          echo "Alertas de CodeQL: $total"
+          echo "### CodeQL: $total alertas" >> "$GITHUB_STEP_SUMMARY"
+          [ "$total" -eq 0 ]
 
   construccion:
     name: 4 · Construcción y rendimiento
