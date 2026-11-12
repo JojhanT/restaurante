@@ -384,3 +384,29 @@ button:not(.chip):not(.peligro):not(.tema):not(.cantidad button):not(.topbar nav
 /* Scroll suave y selección */
 html { scroll-behavior: smooth; }
 ::selection { background: #b8322a33; }
+
+/* SIGR: login, estados de pedido y reservas */
+.login { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+.login .form { width: 100%; max-width: 380px; align-items: stretch; }
+.login h2 { font-size: 1.6rem; text-align: center; }
+.marca-login { width: 56px; height: 56px; border-radius: 50%; background: var(--dorado); display: grid; place-items: center; font-size: 1.8rem; margin: 0 auto; }
+.suave { color: var(--suave); text-align: center; margin: 0; }
+.badge.pendiente { background: var(--suave); }
+.badge.en_preparacion { background: var(--dorado); }
+.badge.listo { background: #3b82c4; }
+.badge.servido, .badge.confirmada { background: var(--verde); }
+.badge.cancelada { background: #6b6b6b; }
+.linea-estado { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 14px; }
+.paso { font-size: 0.75rem; padding: 4px 10px; border-radius: 99px; border: 1.5px solid var(--borde); color: var(--suave); }
+.paso.actual { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 600; }
+.plato.inactivo { opacity: 0.55; }
+.acciones-plato, .acciones-fila { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.acciones-fila { margin: 0; }
+.admin-menu { margin-top: 28px; }
+.chip.etiqueta { display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px 4px 12px; }
+.chip.etiqueta button { background: transparent; color: var(--primary); padding: 0 6px; font-size: 1rem; }
+.top { list-style: none; margin: 0; padding: 0; }
+.top li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--borde); }
+.salir { color: #fff; background: #ffffff22; border-color: #ffffff55; }
+.salir:hover:not(:disabled) { background: #ffffff33 !important; color: #fff !important; border-color: #fff !important; }
+@media (max-width: 640px) { .salir { width: 100%; white-space: normal; } }

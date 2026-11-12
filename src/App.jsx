@@ -1,29 +1,34 @@
 import { useEffect, useState } from "react";
-import Menu from "./components/Menu.jsx";
-import Mesas from "./components/Mesas.jsx";
-import Ventas from "./components/Ventas.jsx";
+import Login from "./components/Login.jsx";
+import Carta from "./components/Carta.jsx";
+import Pedidos from "./components/Pedidos.jsx";
+import Reservas from "./components/Reservas.jsx";
+import Caja from "./components/Caja.jsx";
+import Usuarios from "./components/Usuarios.jsx";
 import Toasts from "./components/Toasts.jsx";
-import useLocalStorage from "./hooks/useLocalStorage.js";
-import { MENU_INICIAL, MESAS_INICIAL } from "./data/mock.js";
+import useLocalStorage, { borrarTodo } from "./hooks/useLocalStorage.js";
+import { puedeVer, VISTAS_POR_ROL } from "./domain/auth.js";
+import { CATEGORIAS_INICIAL, MENU_INICIAL, MESAS_INICIAL, USUARIOS_INICIAL } from "./data/seed.js";
 
-const TITULOS = {
-  mesas: ["Salón principal", "Gestiona mesas, pedidos y cobros en tiempo real."],
-  menu: ["Nuestra carta", "Administra los platos que ofrece el restaurante."],
-  ventas: ["Caja del día", "Consulta las facturas emitidas y el total vendido."],
+const VISTAS = {
+  pedidos: { nombre: "Mesas y pedidos", titulo: "Salón principal", texto: "Abre pedidos, envíalos a cocina y cóbralos." },
+  carta: { nombre: "Carta", titulo: "Nuestra carta", texto: "Los platos que ofrece el restaurante." },
+  reservas: { nombre: "Reservas", titulo: "Reservas", texto: "Reserva una mesa por fecha y hora." },
+  caja: { nombre: "Caja y reportes", titulo: "Caja del día", texto: "Ventas, cierre de caja y reportes diarios." },
+  usuarios: { nombre: "Usuarios", titulo: "Usuarios", texto: "Cuentas de clientes, meseros y administradores." },
 };
 
 export default function App() {
-  const [vista, setVista] = useState("mesas");
+  const [usuarios, setUsuarios] = useLocalStorage("usuarios", USUARIOS_INICIAL);
+  const [categorias, setCategorias] = useLocalStorage("categorias", CATEGORIAS_INICIAL);
   const [menu, setMenu] = useLocalStorage("menu", MENU_INICIAL);
-  const [mesas, setMesas] = useLocalStorage("mesas", MESAS_INICIAL);
-  const [ventas, setVentas] = useLocalStorage("ventas", []);
-
-  function restablecer() {
-    if (!window.confirm("¿Restablecer todos los datos de demostración?")) return;
-    setMenu(MENU_INICIAL);
-    setMesas(MESAS_INICIAL);
-    setVentas([]);
-  }
+  const [mesas] = useLocalStorage("mesas", MESAS_INICIAL);
+  const [pedidos, setPedidos] = useLocalStorage("pedidos", []);
+  const [reservas, setReservas] = useLocalStorage("reservas", []);
+  const [facturas, setFacturas] = useLocalStorage("facturas", []);
+  const [cierres, setCierres] = useLocalStorage("cierres", []);
+  const [sesion, setSesion] = useLocalStorage("sesion", null);
+  const [vista, setVista] = useState(null);
   const [tema, setTema] = useState(() => {
     try {
       return localStorage.getItem("tema") || "claro";
@@ -31,11 +36,6 @@ export default function App() {
       return "claro";
     }
   });
-
-  function registrarVenta(venta) {
-    const hora = new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
-    setVentas((prev) => [{ ...venta, id: prev.length + 1, hora }, ...prev]);
-  }
 
   useEffect(() => {
     document.documentElement.dataset.tema = tema;
@@ -46,6 +46,27 @@ export default function App() {
     }
   }, [tema]);
 
+  // La sesión guarda solo el id: si el usuario se desactiva o desaparece, se cierra sola.
+  const usuario = usuarios.find((u) => u.id === sesion && u.activo) ?? null;
+  const vistasRol = usuario ? VISTAS_POR_ROL[usuario.rol] : [];
+  const actual = usuario && puedeVer(usuario.rol, vista) ? vista : vistasRol[0];
+
+  function restablecer() {
+    if (!window.confirm("¿Restablecer todos los datos de demostración? Se pierden pedidos, reservas y ventas.")) return;
+    borrarTodo();
+    window.location.reload();
+  }
+
+  if (!usuario) {
+    return (
+      <>
+        <Login usuarios={usuarios} setUsuarios={setUsuarios} entrar={(u) => setSesion(u.id)} />
+        <Toasts />
+      </>
+    );
+  }
+
+  const info = VISTAS[actual];
   return (
     <div className="app">
       <header className="hero">
@@ -57,46 +78,60 @@ export default function App() {
             <div className="logo">🍴</div>
             <div>
               <h1>El Sabor</h1>
-              <small>Restaurante</small>
+              <small>SIGR</small>
             </div>
           </div>
           <div className="acciones">
             <nav>
-              <button className={vista === "mesas" ? "activo" : ""} onClick={() => setVista("mesas")}>
-                Mesas y pedidos
-              </button>
-              <button className={vista === "menu" ? "activo" : ""} onClick={() => setVista("menu")}>
-                Menú
-              </button>
-              <button className={vista === "ventas" ? "activo" : ""} onClick={() => setVista("ventas")}>
-                Ventas
-              </button>
+              {vistasRol.map((v) => (
+                <button key={v} className={actual === v ? "activo" : ""} onClick={() => setVista(v)}>
+                  {VISTAS[v].nombre}
+                </button>
+              ))}
             </nav>
-            <button
-              className="tema"
-              title="Cambiar tema"
-              onClick={() => setTema(tema === "claro" ? "oscuro" : "claro")}
-            >
+            <button className="tema" title="Cambiar tema" onClick={() => setTema(tema === "claro" ? "oscuro" : "claro")}>
               {tema === "claro" ? "🌙" : "☀️"}
+            </button>
+            <button className="chip salir" onClick={() => setSesion(null)} title="Cerrar sesión">
+              {usuario.nombre} · {usuario.rol} ⎋
             </button>
           </div>
         </div>
         <div className="hero-texto">
-          <h2>{TITULOS[vista][0]}</h2>
-          <p>{TITULOS[vista][1]}</p>
+          <h2>{info.titulo}</h2>
+          <p>{info.texto}</p>
         </div>
       </header>
       <main>
-        {vista === "menu" && <Menu menu={menu} setMenu={setMenu} />}
-        {vista === "mesas" && (
-          <Mesas menu={menu} mesas={mesas} setMesas={setMesas} registrarVenta={registrarVenta} />
+        {actual === "carta" && (
+          <Carta usuario={usuario} categorias={categorias} setCategorias={setCategorias} menu={menu} setMenu={setMenu} />
         )}
-        {vista === "ventas" && <Ventas ventas={ventas} limpiar={() => setVentas([])} />}
+        {actual === "pedidos" && (
+          <Pedidos
+            usuario={usuario}
+            mesas={mesas}
+            menu={menu}
+            categorias={categorias}
+            pedidos={pedidos}
+            setPedidos={setPedidos}
+            facturas={facturas}
+            setFacturas={setFacturas}
+          />
+        )}
+        {actual === "reservas" && (
+          <Reservas usuario={usuario} mesas={mesas} reservas={reservas} setReservas={setReservas} />
+        )}
+        {actual === "caja" && (
+          <Caja usuario={usuario} facturas={facturas} setFacturas={setFacturas} cierres={cierres} setCierres={setCierres} />
+        )}
+        {actual === "usuarios" && <Usuarios usuarios={usuarios} setUsuarios={setUsuarios} yo={usuario} />}
       </main>
       <Toasts />
       <footer className="pie">
-        <span>Datos guardados en este navegador</span>
-        <button className="chip" onClick={restablecer}>Restablecer datos de demo</button>
+        <span>Datos guardados en este navegador · SIGR v1.0.0</span>
+        {usuario.rol === "admin" && (
+          <button className="chip" onClick={restablecer}>Restablecer datos de demo</button>
+        )}
       </footer>
     </div>
   );
