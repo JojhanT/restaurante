@@ -1,5 +1,7 @@
 # SIGR · Sistema Integral de Gestión de Restaurante
 
+[![Pipeline CI/CD](https://github.com/JojhanT/restaurante/actions/workflows/pipeline.yml/badge.svg)](https://github.com/JojhanT/restaurante/actions/workflows/pipeline.yml)
+
 Aplicación web (React + Vite) para gestionar **pedidos, reservas, carta, caja y reportes** de un restaurante. Este repositorio contiene la **línea base v1.0.0** del código fuente (ver [CHANGELOG.md](CHANGELOG.md)).
 
 > Los datos viven en el navegador (`localStorage`) y se sincronizan entre pestañas; no hay servidor. Ver [docs/ESTRUCTURA_DATOS.md](docs/ESTRUCTURA_DATOS.md).
@@ -16,7 +18,7 @@ Aplicación web (React + Vite) para gestionar **pedidos, reservas, carta, caja y
 
 ## Requisitos
 
-- Node.js 18 o superior
+- Node.js 20.19 o superior
 
 ## Instalación y ejecución
 
@@ -31,9 +33,28 @@ Otros comandos:
 
 ```bash
 npm test           # pruebas automáticas (Vitest)
+npm run test:ci    # pruebas con cobertura y reporte JUnit (lo que corre el pipeline)
+npm run lint       # análisis estático (ESLint)
+npm run audit      # vulnerabilidades altas o críticas en dependencias
 npm run build      # genera dist/ para producción
+npm run check:size # presupuesto de tamaño del paquete
 npm run preview    # sirve dist/ localmente
 ```
+
+## Pipeline CI/CD
+
+Cada push ejecuta [.github/workflows/pipeline.yml](.github/workflows/pipeline.yml):
+
+| Etapa | Qué hace | Falla si… |
+|---|---|---|
+| 1 · Calidad | ESLint | hay errores de análisis estático |
+| 2 · Pruebas | Vitest con cobertura y reporte JUnit | una prueba falla o la cobertura de `src/domain` baja del umbral |
+| 3 · Seguridad | `npm audit` y CodeQL | hay vulnerabilidades altas o críticas, o CodeQL reporta alertas |
+| 4 · Construcción | `vite build` y presupuesto de tamaño | el build falla o el paquete supera el límite |
+| 5 · Staging | Publica en GitHub Pages (solo `main`) | el despliegue falla |
+| 6 · Verificación | Prueba de humo sobre el sitio publicado | el sitio no responde, no carga o tarda más de 2 s |
+
+Las etapas 2 y 3 corren en paralelo. En ramas distintas de `main` el pipeline llega hasta la construcción, sin desplegar.
 
 ## Cuentas de demostración
 
@@ -56,7 +77,8 @@ src/
   hooks/useLocalStorage.js   # persistencia + sincronización entre pestañas
   components/         # Login, Carta, Pedidos, Reservas, Caja, Usuarios, Toasts
 docs/                 # estructura de datos y manual de despliegue
-.github/workflows/ci.yml     # pruebas y build en cada push / pull request
+scripts/              # presupuesto de tamaño y prueba de humo del pipeline
+.github/workflows/pipeline.yml   # pipeline CI/CD
 ```
 
 ## Flujo de trabajo y versionado

@@ -6,17 +6,44 @@ import Reservas from "./components/Reservas.jsx";
 import Caja from "./components/Caja.jsx";
 import Usuarios from "./components/Usuarios.jsx";
 import Toasts from "./components/Toasts.jsx";
+import Icono from "./components/Icono.jsx";
+import { iniciales } from "./components/ui.jsx";
 import useLocalStorage, { borrarTodo } from "./hooks/useLocalStorage.js";
-import { puedeVer, VISTAS_POR_ROL } from "./domain/auth.js";
+import { NOMBRE_ROL, puedeVer, VISTAS_POR_ROL } from "./domain/auth.js";
 import { CATEGORIAS_INICIAL, MENU_INICIAL, MESAS_INICIAL, USUARIOS_INICIAL } from "./data/seed.js";
 
 const VISTAS = {
-  pedidos: { nombre: "Mesas y pedidos", titulo: "Salón principal", texto: "Abre pedidos, envíalos a cocina y cóbralos." },
-  carta: { nombre: "Carta", titulo: "Nuestra carta", texto: "Los platos que ofrece el restaurante." },
-  reservas: { nombre: "Reservas", titulo: "Reservas", texto: "Reserva una mesa por fecha y hora." },
-  caja: { nombre: "Caja y reportes", titulo: "Caja del día", texto: "Ventas, cierre de caja y reportes diarios." },
-  usuarios: { nombre: "Usuarios", titulo: "Usuarios", texto: "Cuentas de clientes, meseros y administradores." },
+  pedidos: {
+    nombre: "Mesas y pedidos", corto: "Pedidos", icono: "pedidos", seccion: "Operación",
+    titulo: "Salón principal", texto: "Abre pedidos por mesa, envíalos a cocina y cóbralos cuando estén servidos.",
+  },
+  carta: {
+    nombre: "Carta", corto: "Carta", icono: "carta", seccion: "Menú digital",
+    titulo: "Nuestra carta", texto: "Platos y categorías que ofrece el restaurante.",
+  },
+  reservas: {
+    nombre: "Reservas", corto: "Reservas", icono: "reservas", seccion: "Clientes",
+    titulo: "Reservas", texto: "Aparta una mesa por fecha y hora. La mesa se asigna sola según el número de personas.",
+  },
+  caja: {
+    nombre: "Caja y reportes", corto: "Caja", icono: "caja", seccion: "Finanzas",
+    titulo: "Caja del día", texto: "Ventas pendientes de cierre, cierre de caja y reportes diarios.",
+  },
+  usuarios: {
+    nombre: "Usuarios", corto: "Usuarios", icono: "usuarios", seccion: "Administración",
+    titulo: "Usuarios y permisos", texto: "Cuentas de clientes, meseros y administradores.",
+  },
 };
+
+function temaInicial() {
+  try {
+    const guardado = localStorage.getItem("tema");
+    if (guardado) return guardado;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "oscuro" : "claro";
+  } catch {
+    return "claro";
+  }
+}
 
 export default function App() {
   const [usuarios, setUsuarios] = useLocalStorage("usuarios", USUARIOS_INICIAL);
@@ -29,13 +56,7 @@ export default function App() {
   const [cierres, setCierres] = useLocalStorage("cierres", []);
   const [sesion, setSesion] = useLocalStorage("sesion", null);
   const [vista, setVista] = useState(null);
-  const [tema, setTema] = useState(() => {
-    try {
-      return localStorage.getItem("tema") || "claro";
-    } catch {
-      return "claro";
-    }
-  });
+  const [tema, setTema] = useState(temaInicial);
 
   useEffect(() => {
     document.documentElement.dataset.tema = tema;
@@ -51,16 +72,31 @@ export default function App() {
   const vistasRol = usuario ? VISTAS_POR_ROL[usuario.rol] : [];
   const actual = usuario && puedeVer(usuario.rol, vista) ? vista : vistasRol[0];
 
+  useEffect(() => {
+    document.title = usuario ? `${VISTAS[actual].nombre} · El Sabor` : "Iniciar sesión · El Sabor";
+  }, [usuario, actual]);
+
   function restablecer() {
     if (!window.confirm("¿Restablecer todos los datos de demostración? Se pierden pedidos, reservas y ventas.")) return;
     borrarTodo();
     window.location.reload();
   }
 
+  const botonTema = (
+    <button
+      className="btn btn-fantasma btn-icono"
+      onClick={() => setTema(tema === "claro" ? "oscuro" : "claro")}
+      title={tema === "claro" ? "Cambiar a modo oscuro" : "Cambiar a modo claro"}
+      aria-label={tema === "claro" ? "Cambiar a modo oscuro" : "Cambiar a modo claro"}
+    >
+      <Icono nombre={tema === "claro" ? "luna" : "sol"} />
+    </button>
+  );
+
   if (!usuario) {
     return (
       <>
-        <Login usuarios={usuarios} setUsuarios={setUsuarios} entrar={(u) => setSesion(u.id)} />
+        <Login usuarios={usuarios} setUsuarios={setUsuarios} entrar={(u) => setSesion(u.id)} botonTema={botonTema} />
         <Toasts />
       </>
     );
@@ -69,40 +105,52 @@ export default function App() {
   const info = VISTAS[actual];
   return (
     <div className="app">
-      <header className="hero">
-        <div className="flotantes" aria-hidden="true">
-          <span>🍕</span><span>🥑</span><span>🍋</span><span>🌮</span><span>🍰</span><span>🥂</span>
-        </div>
-        <div className="topbar">
+      <header className="topbar">
+        <div className="topbar-interior">
           <div className="marca">
-            <div className="logo">🍴</div>
+            <div className="marca-logo"><Icono nombre="logo" tam={20} /></div>
             <div>
-              <h1>El Sabor</h1>
-              <small>SIGR</small>
+              <div className="marca-nombre">El Sabor</div>
+              <div className="marca-sub">Gestión de restaurante</div>
             </div>
           </div>
-          <div className="acciones">
-            <nav>
-              {vistasRol.map((v) => (
-                <button key={v} className={actual === v ? "activo" : ""} onClick={() => setVista(v)}>
-                  {VISTAS[v].nombre}
-                </button>
-              ))}
-            </nav>
-            <button className="tema" title="Cambiar tema" onClick={() => setTema(tema === "claro" ? "oscuro" : "claro")}>
-              {tema === "claro" ? "🌙" : "☀️"}
-            </button>
-            <button className="chip salir" onClick={() => setSesion(null)} title="Cerrar sesión">
-              {usuario.nombre} · {usuario.rol} ⎋
+          <nav className="nav" aria-label="Secciones">
+            {vistasRol.map((v) => (
+              <button
+                key={v}
+                className={`nav-item ${actual === v ? "activo" : ""}`}
+                onClick={() => setVista(v)}
+                aria-current={actual === v ? "page" : undefined}
+              >
+                <Icono nombre={VISTAS[v].icono} />
+                <span className="nav-largo">{VISTAS[v].nombre}</span>
+                <span className="nav-corto">{VISTAS[v].corto}</span>
+              </button>
+            ))}
+          </nav>
+          <div className="usuario">
+            {botonTema}
+            <div className="avatar" aria-hidden="true">{iniciales(usuario.nombre)}</div>
+            <div className="usuario-datos">
+              <span className="usuario-nombre">{usuario.nombre}</span>
+              <span className="usuario-rol">{NOMBRE_ROL[usuario.rol]}</span>
+            </div>
+            <button className="btn btn-fantasma btn-icono" onClick={() => setSesion(null)} title="Cerrar sesión" aria-label="Cerrar sesión">
+              <Icono nombre="salir" />
             </button>
           </div>
         </div>
-        <div className="hero-texto">
-          <h2>{info.titulo}</h2>
-          <p>{info.texto}</p>
-        </div>
       </header>
-      <main>
+
+      <main className="contenido">
+        <div className="cabecera">
+          <div>
+            <span className="cabecera-eyebrow"><Icono nombre={info.icono} tam={14} /> {info.seccion}</span>
+            <h1>{info.titulo}</h1>
+            <p>{info.texto}</p>
+          </div>
+        </div>
+
         {actual === "carta" && (
           <Carta usuario={usuario} categorias={categorias} setCategorias={setCategorias} menu={menu} setMenu={setMenu} />
         )}
@@ -126,11 +174,12 @@ export default function App() {
         )}
         {actual === "usuarios" && <Usuarios usuarios={usuarios} setUsuarios={setUsuarios} yo={usuario} />}
       </main>
+
       <Toasts />
       <footer className="pie">
-        <span>Datos guardados en este navegador · SIGR v1.0.0</span>
+        <span>SIGR v1.0.0 · Los datos se guardan en este navegador</span>
         {usuario.rol === "admin" && (
-          <button className="chip" onClick={restablecer}>Restablecer datos de demo</button>
+          <button className="btn btn-fantasma btn-sm" onClick={restablecer}>Restablecer datos de demostración</button>
         )}
       </footer>
     </div>
