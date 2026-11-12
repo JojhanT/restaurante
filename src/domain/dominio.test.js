@@ -3,7 +3,8 @@ import { MENU_INICIAL, MESAS_INICIAL, USUARIOS_INICIAL } from "../data/seed.js";
 import { autenticar, hashClave, puedeVer, registrarCliente } from "./auth.js";
 import { aCSV, cerrarCaja, nuevaFactura, platosMasVendidos, reportePorDia, resumen } from "./caja.js";
 import { calcularCuenta } from "./cuenta.js";
-import { categoriaEnUso, validarPlato } from "./menu.js";
+import { fechaISO, formatoPesos, horaHM } from "./format.js";
+import { categoriaEnUso, nombreCategoria, validarPlato } from "./menu.js";
 import { agregarItem, avanzar, cambiarCantidad, nuevoPedido, pedidoDeMesa } from "./pedidos.js";
 import { crearReserva, mesasDisponibles } from "./reservas.js";
 
@@ -41,6 +42,24 @@ describe("menú", () => {
   it("detecta categorías en uso", () => {
     expect(categoriaEnUso(MENU_INICIAL, 1)).toBe(true);
     expect(categoriaEnUso(MENU_INICIAL, 99)).toBe(false);
+  });
+
+  it("muestra el nombre de la categoría o un texto por defecto", () => {
+    const categorias = [{ id: 1, nombre: "Entradas" }];
+    expect(nombreCategoria(categorias, 1)).toBe("Entradas");
+    expect(nombreCategoria(categorias, 9)).toBe("Sin categoría");
+  });
+});
+
+describe("formato", () => {
+  it("formatea pesos colombianos sin decimales", () => {
+    expect(formatoPesos(28000)).toMatch(/^\$\s?28\.000$/);
+  });
+
+  it("formatea fecha y hora locales con ceros a la izquierda", () => {
+    const d = new Date(2026, 4, 7, 9, 5);
+    expect(fechaISO(d)).toBe("2026-05-07");
+    expect(horaHM(d)).toBe("09:05");
   });
 });
 
