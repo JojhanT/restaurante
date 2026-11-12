@@ -1,4 +1,6 @@
 import { useState } from "react";
+import Icono from "./Icono.jsx";
+import { Alerta, Campo, Insignia, TituloSeccion, Vacio } from "./ui.jsx";
 import { categoriaEnUso, nombreCategoria, validarPlato } from "../domain/menu.js";
 import { formatoPesos } from "../domain/format.js";
 import { mostrarToast } from "../utils/toast.js";
@@ -43,8 +45,9 @@ export default function Carta({ usuario, categorias, setCategorias, menu, setMen
 
   function editar(p) {
     setEditando(p.id);
+    setError("");
     setForm({ nombre: p.nombre, categoriaId: p.categoriaId, precio: p.precio, emoji: p.emoji });
-    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    document.getElementById("form-plato")?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   function agregarCategoria(e) {
@@ -54,6 +57,7 @@ export default function Carta({ usuario, categorias, setCategorias, menu, setMen
     if (categorias.some((c) => c.nombre.toLowerCase() === nombre.toLowerCase())) return mostrarToast("Esa categoría ya existe", "aviso");
     setCategorias([...categorias, { id: Math.max(0, ...categorias.map((c) => c.id)) + 1, nombre }]);
     setNuevaCategoria("");
+    mostrarToast(`Categoría "${nombre}" creada`);
   }
 
   function quitarCategoria(c) {
@@ -63,83 +67,150 @@ export default function Carta({ usuario, categorias, setCategorias, menu, setMen
   }
 
   return (
-    <section>
-      <div className="seccion-titulo">
-        <h2>Platos ({visibles.length})</h2>
-      </div>
-      <div className="buscador">
-        <input placeholder="🔍 Buscar plato..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
-      </div>
-      <div className="filtros">
-        <button className={filtro === 0 ? "chip activo" : "chip"} onClick={() => setFiltro(0)}>Todas</button>
-        {categorias.map((c) => (
-          <button key={c.id} className={filtro === c.id ? "chip activo" : "chip"} onClick={() => setFiltro(c.id)}>
-            {c.nombre}
+    <>
+      <div className="barra-filtros">
+        <label className="campo-con-icono buscar">
+          <span className="sr-only">Buscar plato</span>
+          <Icono nombre="buscar" tam={16} />
+          <input type="search" placeholder="Buscar plato…" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
+        </label>
+        <div className="tabs" role="tablist" aria-label="Filtrar por categoría">
+          <button role="tab" aria-selected={filtro === 0} className={`tab ${filtro === 0 ? "activo" : ""}`} onClick={() => setFiltro(0)}>
+            Todas <span className="tab-num">{menu.filter((p) => esAdmin || p.activo).length}</span>
           </button>
-        ))}
+          {categorias.map((c) => (
+            <button key={c.id} role="tab" aria-selected={filtro === c.id} className={`tab ${filtro === c.id ? "activo" : ""}`} onClick={() => setFiltro(c.id)}>
+              {c.nombre}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="grid">
-        {visibles.map((p) => (
-          <article key={p.id} className={`card plato ${p.activo ? "" : "inactivo"}`}>
-            <div className="emoji">{p.emoji}</div>
-            <div className="cuerpo">
-              <small>{nombreCategoria(categorias, p.categoriaId)}{p.activo ? "" : " · oculto"}</small>
-              <h3>{p.nombre}</h3>
-              <strong>{formatoPesos(p.precio)}</strong>
+      {visibles.length === 0 ? (
+        <div className="card">
+          <Vacio icono="buscar" titulo="No encontramos platos">Prueba con otra búsqueda o categoría.</Vacio>
+        </div>
+      ) : (
+        <div className="platos">
+          {visibles.map((p) => (
+            <article key={p.id} className={`card plato ${p.activo ? "" : "inactivo"}`}>
+              <div className="plato-img">
+                <span aria-hidden="true">{p.emoji}</span>
+                {!p.activo && <Insignia tono="neutro">Oculto</Insignia>}
+              </div>
+              <div className="plato-cuerpo">
+                <span className="plato-cat">{nombreCategoria(categorias, p.categoriaId)}</span>
+                <h3>{p.nombre}</h3>
+                <span className="precio">{formatoPesos(p.precio)}</span>
+              </div>
               {esAdmin && (
-                <div className="acciones-plato">
-                  <button className="chip" onClick={() => editar(p)}>Editar</button>
-                  <button className="chip" onClick={() => setMenu(menu.map((x) => (x.id === p.id ? { ...x, activo: !x.activo } : x)))}>
-                    {p.activo ? "Ocultar" : "Mostrar"}
+                <div className="plato-admin">
+                  <button className="btn btn-fantasma btn-icono btn-icono-sm" onClick={() => editar(p)} title="Editar" aria-label={`Editar ${p.nombre}`}>
+                    <Icono nombre="editar" tam={16} />
                   </button>
                   <button
-                    className="peligro"
+                    className="btn btn-fantasma btn-icono btn-icono-sm"
+                    onClick={() => setMenu(menu.map((x) => (x.id === p.id ? { ...x, activo: !x.activo } : x)))}
+                    title={p.activo ? "Ocultar de la carta" : "Mostrar en la carta"}
+                    aria-label={p.activo ? `Ocultar ${p.nombre}` : `Mostrar ${p.nombre}`}
+                  >
+                    <Icono nombre={p.activo ? "ocultar" : "ver"} tam={16} />
+                  </button>
+                  <button
+                    className="btn btn-fantasma btn-icono btn-icono-sm btn-icono-peligro"
+                    title="Eliminar"
+                    aria-label={`Eliminar ${p.nombre}`}
                     onClick={() => {
-                      if (!window.confirm(`¿Eliminar "${p.nombre}"?`)) return;
+                      if (!window.confirm(`¿Eliminar "${p.nombre}" de la carta?`)) return;
                       setMenu(menu.filter((x) => x.id !== p.id));
                       mostrarToast(`${p.nombre} eliminado`, "aviso");
                     }}
                   >
-                    Eliminar
+                    <Icono nombre="borrar" tam={16} />
                   </button>
                 </div>
               )}
-            </div>
-          </article>
-        ))}
-        {visibles.length === 0 && <div className="card vacio">No hay platos para mostrar.</div>}
-      </div>
-
-      {esAdmin && (
-        <div className="dos-columnas admin-menu">
-          <form className="card form" onSubmit={guardar}>
-            <h3>{editando ? "Editar plato" : "Agregar plato"}</h3>
-            <input placeholder="Nombre del plato" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} />
-            <select value={form.categoriaId} onChange={(e) => setForm({ ...form, categoriaId: e.target.value })}>
-              {categorias.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-            </select>
-            <input type="number" min="0" placeholder="Precio" value={form.precio} onChange={(e) => setForm({ ...form, precio: e.target.value })} />
-            <input placeholder="Emoji" maxLength={4} value={form.emoji} onChange={(e) => setForm({ ...form, emoji: e.target.value })} />
-            <button type="submit">{editando ? "Guardar cambios" : "Agregar"}</button>
-            {editando && <button type="button" className="chip" onClick={cancelar}>Cancelar edición</button>}
-            {error && <p className="error">{error}</p>}
-          </form>
-
-          <form className="card form" onSubmit={agregarCategoria}>
-            <h3>Categorías</h3>
-            <div className="filtros">
-              {categorias.map((c) => (
-                <span key={c.id} className="chip etiqueta">
-                  {c.nombre} <button type="button" aria-label={`Eliminar ${c.nombre}`} onClick={() => quitarCategoria(c)}>×</button>
-                </span>
-              ))}
-            </div>
-            <input placeholder="Nueva categoría" value={nuevaCategoria} onChange={(e) => setNuevaCategoria(e.target.value)} />
-            <button type="submit" disabled={!nuevaCategoria.trim()}>Agregar categoría</button>
-          </form>
+            </article>
+          ))}
         </div>
       )}
-    </section>
+
+      {esAdmin && (
+        <section className="seccion">
+          <TituloSeccion titulo="Administrar la carta" texto="Solo el administrador ve esta sección." />
+          <div className="dos-columnas columnas-iguales">
+            <form id="form-plato" className={`card form ${editando ? "editando" : ""}`} onSubmit={guardar}>
+              <div className="card-titulo">
+                <div>
+                  <h3>{editando ? "Editar plato" : "Nuevo plato"}</h3>
+                  <p>{editando ? "Los cambios no afectan pedidos ya registrados." : "Aparecerá de inmediato en la carta."}</p>
+                </div>
+                <span className="emoji-vista" aria-hidden="true">{form.emoji || "🍴"}</span>
+              </div>
+              <Campo etiqueta="Nombre del plato">
+                <input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} placeholder="Ej. Arroz con coco" />
+              </Campo>
+              <Campo etiqueta="Categoría">
+                <select value={form.categoriaId} onChange={(e) => setForm({ ...form, categoriaId: e.target.value })}>
+                  {categorias.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                </select>
+              </Campo>
+              <div className="fila-campos">
+                <Campo etiqueta="Precio (COP)">
+                  <input type="number" min="0" step="500" inputMode="numeric" value={form.precio} onChange={(e) => setForm({ ...form, precio: e.target.value })} placeholder="15000" />
+                </Campo>
+                <Campo etiqueta="Ícono" ayuda="Un emoji">
+                  <input maxLength={4} value={form.emoji} onChange={(e) => setForm({ ...form, emoji: e.target.value })} />
+                </Campo>
+              </div>
+              {error && <Alerta>{error}</Alerta>}
+              <div className="botones">
+                {editando && <button type="button" className="btn btn-secundario" onClick={cancelar}>Cancelar</button>}
+                <button type="submit" className="btn btn-primario">
+                  <Icono nombre={editando ? "check" : "mas"} tam={16} /> {editando ? "Guardar cambios" : "Agregar plato"}
+                </button>
+              </div>
+            </form>
+
+            <form className="card form" onSubmit={agregarCategoria}>
+              <div className="card-titulo">
+                <div>
+                  <h3>Categorías</h3>
+                  <p>Una categoría con platos no se puede eliminar.</p>
+                </div>
+              </div>
+              <ul className="categorias">
+                {categorias.map((c) => {
+                  const total = menu.filter((p) => p.categoriaId === c.id).length;
+                  return (
+                    <li key={c.id}>
+                      <span>{c.nombre}</span>
+                      <span className="texto-suave texto-sm">{total} {total === 1 ? "plato" : "platos"}</span>
+                      <button
+                        type="button"
+                        className="btn btn-fantasma btn-icono btn-icono-sm btn-icono-peligro"
+                        aria-label={`Eliminar categoría ${c.nombre}`}
+                        title="Eliminar categoría"
+                        onClick={() => quitarCategoria(c)}
+                      >
+                        <Icono nombre="borrar" tam={15} />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+              <Campo etiqueta="Nueva categoría">
+                <div className="codigo">
+                  <input value={nuevaCategoria} onChange={(e) => setNuevaCategoria(e.target.value)} placeholder="Ej. Sopas" />
+                  <button type="submit" className="btn btn-secundario" disabled={!nuevaCategoria.trim()}>
+                    <Icono nombre="mas" tam={16} /> Agregar
+                  </button>
+                </div>
+              </Campo>
+            </form>
+          </div>
+        </section>
+      )}
+    </>
   );
 }

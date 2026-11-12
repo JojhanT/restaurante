@@ -4,9 +4,9 @@ export const IMPUESTO_CONSUMO = 0.08;
 export const PROPINA = 0.1;
 
 export const USUARIOS_INICIAL = [
-  { id: 1, nombre: "Administrador", usuario: "admin", rol: "admin", clave: "3b612c75a7b5048a435fb6ec81e52ff92d6d795a8b5a9c17070f6a63c97a53b2", activo: true },
-  { id: 2, nombre: "Mesero de turno", usuario: "mesero", rol: "mesero", clave: "55dcec5b6de9023e541d5e308fc8ba2d3c7ff50d23f2e9fd6e99a92ee7dd272c", activo: true },
-  { id: 3, nombre: "Cliente de prueba", usuario: "cliente", rol: "cliente", clave: "34e422278ea745b5d87ba6592f0ea3fe32a2eb7593f5960ac72d7094fb121f3d", activo: true },
+  { id: 1, nombre: "Laura Martínez", usuario: "admin", rol: "admin", clave: "3b612c75a7b5048a435fb6ec81e52ff92d6d795a8b5a9c17070f6a63c97a53b2", activo: true },
+  { id: 2, nombre: "Carlos Rojas", usuario: "mesero", rol: "mesero", clave: "55dcec5b6de9023e541d5e308fc8ba2d3c7ff50d23f2e9fd6e99a92ee7dd272c", activo: true },
+  { id: 3, nombre: "Ana Pérez", usuario: "cliente", rol: "cliente", clave: "34e422278ea745b5d87ba6592f0ea3fe32a2eb7593f5960ac72d7094fb121f3d", activo: true },
 ];
 
 export const CATEGORIAS_INICIAL = [

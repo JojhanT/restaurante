@@ -30,4 +30,6 @@ export const VISTAS_POR_ROL = {
   cliente: ["carta", "reservas"],
 };
 
-export const puedeVer = (rol, vista) => (VISTAS_POR_ROL[rol] ?? []).includes(vista);
+export const NOMBRE_ROL = { admin: "Administrador", mesero: "Mesero", cliente: "Cliente" };
+
+export const puedeVer =(rol, vista) => (VISTAS_POR_ROL[rol] ?? []).includes(vista);
